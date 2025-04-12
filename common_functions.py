@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, confusion_matrix
+from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, confusion_matrix, accuracy_score
 import seaborn as sns
 
 def plot_roc_curve(y_test, y_prob):
@@ -19,24 +19,28 @@ def plot_roc_curve(y_test, y_prob):
 def plot_precision_recall_threshold(y_test, y_prob, thresholds_to_mark):
     precision, recall, thresholds = precision_recall_curve(y_test, y_prob)
     proportion_label_1 = [(y_prob >= t).mean() for t in thresholds]
+    accuracies = [accuracy_score(y_test, (y_prob >= t).astype(int)) for t in thresholds]
 
     plt.figure(figsize=(8, 6))
     plt.plot(thresholds, precision[:-1], color='green', lw=2, label='Precision')
     plt.plot(thresholds, recall[:-1], color='red', lw=2, label='Recall')
     plt.plot(thresholds, proportion_label_1, color='blue', lw=2, label='Proportion classified as label 1')
+    plt.plot(thresholds, accuracies, color='orange', lw=2, label='Accuracy')
 
     for t in thresholds_to_mark:
         precision_val = precision[np.searchsorted(thresholds, t, side="left")]
         recall_val = recall[np.searchsorted(thresholds, t, side="left")]
         proportion_val = (y_prob >= t).mean()
+        accuracy_val = accuracy_score(y_test, (y_prob >= t).astype(int))
         plt.axvline(x=t, color='gray', linestyle='--', lw=1)
         plt.text(t, precision_val, f'{precision_val:.2f}', color='green', fontsize=10, ha='right')
         plt.text(t, recall_val, f'{recall_val:.2f}', color='red', fontsize=10, ha='right')
         plt.text(t, proportion_val, f'{proportion_val:.2f}', color='blue', fontsize=10, ha='right')
+        plt.text(t, accuracy_val, f'{accuracy_val:.2f}', color='orange', fontsize=10, ha='right')
 
     plt.xlabel('Classification Threshold')
-    plt.ylabel('Precision / Recall / Proportion')
-    plt.title('Precision, Recall, and Proportion vs. Classification Threshold')
+    plt.ylabel('Precision / Recall / Proportion / Accuracy')
+    plt.title('Precision, Recall, Proportion, and Accuracy vs. Classification Threshold')
     plt.legend(loc="lower left")
     plt.tight_layout()
     plt.show()
